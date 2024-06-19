@@ -153,6 +153,14 @@ Ejemplos de funciones tipo map:
             4                                           8
         ** NOTA: La función que espera recibir la función MAP es de tipo: Function<T,R> donde T es el tipo de dato de la colección inicial y R es el tipo de dato de la colección final.
 
+    - FLAT MAP = MAP + FLATTEN
+      Aplica sobre cada dato la función de transformación suministrada ... como si fuera un MAP
+
+      Pero... en este caso, FLATMAP requiere una función de transformación que devuelva un STREAM
+
+      Una vez aplicado el MAP, se juntan todos los Streams en uno solo
+        Stream<Stream<T>> -> Stream<T>
+
     - FILTER: Aplica un Predicado(una función que recibe un dato y devuelve true o false)
               sobre cada elemento de la colección inicial, 
               Y genera una colección final que solo contendrá los elementos para los que la 
@@ -286,3 +294,112 @@ c:\Users\miUsuario\.m2
 
 En esa carpeta es donde maven busca las dependencias que necesita para compilar mi proyecto.
 Si una dependencia no la encuentra, la descarga de internet y la guarda en esa carpeta.
+
+---
+## Planteo el map Reduce:
+
+COLECCION INICIAL
+    Fiesta en la playa #BeachParty#SunFun#CacaSun, bronceado extremo!
+    #CaféEnLaMañana con un libro... #Relax pero mi café está frío :(
+    Noche de estudio #StudyHard#NoSleep, ¿quién inventó los exámenes?
+                        vvvvv
+NECESITO PLANTEAR OPERACIONES MAP para pasar de la colección inicial a la colección final
+                        vvvvv
+COLECCION FINAL
+    beachparty
+    sunfun
+    caféenlamañana
+    relax
+    studyhard
+
+Y teneos 1 linea de código para hacer el trabajo!
+
+De cada tweet quiero sacar los hashtags?.. COMO???
+    Qué es un hashtag? Una palabra que comienza por #
+    Tengo palabras? NO... tengo tweets... tengo líneas de texto
+    Cada linea la necesito convertir en palabras:
+        texto.split( ) -> Array[] con tokens separados por espacios
+                    ^ REGEX
+
+    Array<String> -> Stream<String>
+
+(Fiesta, en, la, playa, #BeachParty, #SunFun, #CacaSun, bronceado, extremo) 
+   vvvv
+    Fiesta
+    en
+    la
+    playa
+    #BeachParty
+    #SunFun
+    #CacaSun
+    bronceado
+    extremo
+    vvvv
+    #BeachParty
+    #SunFun
+    #CacaSun
+    vvvv
+    beachparty
+    sunfun
+    cacasun
+    vvvv
+    beachparty
+    sunfun
+
+
+---
+
+# REGEX
+
+Trabajar con expresiones regulares es importante. Nos permite hacer operaciones muy potentes sobre textos.
+El concepto básico en regex es el de patrón.
+Defino un patrón... y entonces puedo:
+- Dividir un texto por ese patrón
+- Buscar todas las ocurrencias de ese patrón en un texto
+- Verificar si un texto cumple con un patrón
+Los patrones los definimos en un lenguaje específico para ello.... que se definió por primera vez en PERL. De ese lenguaje se han hecho implementaciones en casi todos los lenguajes de programación.
+
+Un patrón es: Una secuencia de SUBPATRONES
+un SUBPATRON es: una secuencia de caracteres seguida de un modificador de número de ocurrencia.
+
+> Texto de ejemplo.: Me llamo Iván... Tengo 47 palos... Mi teléfono es 666 666 666
+
+Secuencias de caracteres en perl:       SIGNIFICADO
+    - llamo                                 coincidencia exacta de ese texto en el texto original
+        Me llamo Iván... Tengo 47 palos... Mi teléfono es 666 666 666
+           -----
+
+    - [abc]                                 coincidencia de una de las letras a, b o c
+        Me llamo Iván... Tengo 47 palos... Mi teléfono es 666 666 666
+             -                     -
+
+    - [a-z]                                 coincidencia de caracteres en ese rango (ASCII) : a-z
+        Me llamo Iván... Tengo 47 palos... Mi teléfono es 666 666 666
+         - -----  - -     ----    -----     - --- ---- --
+    
+    - [0-9]                                 coincidencia de caracteres en ese rango (ASCII) : 0-9
+        Me llamo Iván... Tengo 47 palos... Mi teléfono es 666 666 666
+                               --                         --- --- ---   11 veces encontrado el patrón
+    - .                                     cualquier carácter
+        Me llamo Iván... Tengo 47 palos... Mi teléfono es 666 666 666 --- 50 veces aparece cualquier caracter. Cada caractes es Cualquier caracter
+    - Escapar caracteres especiales: 
+    - \. [.]                                   coincidencia de un punto
+        Me llamo Iván... Tengo 47 palos... Mi teléfono es 666 666 666
+                     ---               ---              6 veces aparece un punto
+
+Modificadores de cantidad
+    - No poner nada                         1 vez
+    - ?                                     0 o 1 vez
+    - +                                     1 o más veces
+    - *                                     0 o más veces
+    - {4}                                   4 veces
+    - {4,7}                                 de 4 a 7 veces
+    - {7,}                                  7 o más veces
+
+Caracteres especiales:
+    - ^                                     comienza por
+    - $                                     termina por
+    - ()                                    agrupar subpatrones
+    - |                                     OR
+
+Cuando necesite trabajar con regex : https://regex101.com/

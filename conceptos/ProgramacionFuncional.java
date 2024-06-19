@@ -1,3 +1,4 @@
+package conceptos;
 // En java 1.8, que es cuando se añade al lenguaje JAVA el soporte para programación funcional,
 // se añade un nuevo paquete al API de java: java.util.function, que está lleno de interfaces, 
 // que me permiten apuntar a funciones... los llamamos interfaces funcionales.
