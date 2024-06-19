@@ -403,3 +403,62 @@ Caracteres especiales:
     - |                                     OR
 
 Cuando necesite trabajar con regex : https://regex101.com/
+
+---
+
+# Buscar palabras similares
+
+Lista de palabras buenas (ya normalizadas)
+- manzana                       ~ manana
+- manzano
+- mañana
+- albaricoque
+    vvv
+
+
+    vvv
+Lista de palabras parecidas ordenadas por distancia y limitadas a 10
+- mañana
+- manzana
+- manzano
+
+        distancia          PalabraPuntuada.puntuacion
+   filter   map        filter       sorted                    limit 3                 map          collect
+manzana     ->     manzana, 1        ->      manzana, 1         ->     manzana, 1    --->  manzana  --->     LISTA
+manzano     ->     manzano, 2        ->      mañana,  1                mañana,  1          mañana
+mañana      ->     mañana,  1        ->      manzano, 2                manzano, 2          manzano
+albaricoque ->     albaricoque, 9    ->      albaricoque, 9
+
+Stream      ->      Stream           ->      Stream          ->      Stream          ->      List
+<String>            <PalabraPuntuada>        <PalabraPuntuada>       <PalabraPuntuada>       <String>
+
+PalabraPuntuada
+    palabra: String
+    puntuacion: int
+
+¿Cuáles son las 2 operaciones más complejas (computacionalmente hablando) de este algoritmo?
+- Primer map: Calcular la distancia de Levenshtein
+- Sorted (n)·log(n)
+        640000*log(640000) = 640000 * 5.8 = 3.712.000 ... multiplicamos por 4
+        100000*log(100000) = 100000 * 4   =   400.000 + 640.000 = 1.040.000
+
+
+albaricoque
+
+manana ~ manzano  Me he equivocado en 2
+       ~ banana   Me he equivocado en 1
+       ~ bananón  Me he equivocado en 3
+
+Hasta 2 pulsaciones de tecla incorrectas, te lo compro... más no!
+Pero sigo teniendo el problema... Tengo que mirar la diferencia de mi palabra con todas... para saber si tienen o no más de 2 de diferencia.
+
+mananacoque         Si mide 11
+manana              Si mide 6
+                            |5| = 5
+??????
+???????????
+man         3
+manana      6
+            |-3| = 3
+
+Primer filtro : Diferencia de longitudes en valor absoluto <= 2 Me la quedo... Si no, descartada a priori.
