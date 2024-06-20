@@ -343,6 +343,17 @@ Mi máquina              Maestro                 Trabajador1     Trabajador 50
         --------------------------------
                         Código
 
+Un ACCUMULATOR es una variable que se puede modificar desde cualquier punto del cluster... y que se almacena realmente en la RAM de mi máquina.
+
+    Mi máquina                              Nodos
+    Yo la veo                               Y ellos la tocan
+
+Un BROADCAST es una variable que se puede leer desde cualquier punto del cluster... y que se toca desde mi maquina.
+
+    Mi máquina                              Nodos
+    Yo la toco                             Y ellos la ven
+
+
 Cómo mandamos en JAVA un dato por la RED?
 - bytes
 - json: DE TEXTO PLANO- UTF-8

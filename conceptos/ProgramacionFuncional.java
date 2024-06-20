@@ -59,8 +59,8 @@ public class ProgramacionFuncional {
         System.out.println(mi_funcion2.apply(5.0));
         // JAVA puede inferir muchas cosas de una expresión lambda.
         Function<Double, Double> mi_funcion3 = (unNumero) -> { 
-            return unNumero * 2;
-        }; 
+                                                                return unNumero * 2;
+                                                            }; 
         System.out.println(mi_funcion3.apply(5.0));
         Function<Double, Double> mi_funcion4 = (unNumero) -> unNumero * 2; 
         System.out.println(mi_funcion4.apply(5.0));
