@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+// Desde JDK 9 en adelante: "--add-exports java.base/sun.nio.ch=ALL-UNNAMED"
 public class TrendingTopics {
 
     private static final List<String> PALABRAS_PROHIBIDAS = new ArrayList<>();
@@ -25,7 +26,7 @@ public class TrendingTopics {
 
     public static void main(String[] args) throws IOException, URISyntaxException {
         // PASO 1: ABRIR UNA CONEXION CON UN CLUSTER DE SPARK
-        // Configurar nuestra app para ejecutarse en un cluster: Nombre app, Direccion del cluster
+        // Configurar nuestra app para ejecutarse en un cluster: Nombre app, Dirección del cluster
         SparkConf conf = new SparkConf();
         conf.setAppName("TrendingTopics"); // Nombre para mi app en el cluster (ID)
         conf.setMaster("local[2]"); // La dirección será del tipo:     spark://mi-cluster:7077

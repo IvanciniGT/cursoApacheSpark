@@ -301,3 +301,142 @@ Java  20: 2023
 Java  21: 2023
 Java  22: 2024
 Java  23: 2024
+
+---
+
+En JAVA 9 hay un cambio gigante en la arquitectura de la JVM:
+Proyecto JIGSAW: Modularizar la JVM
+
+    module
+        package
+            class
+            interface
+
+    module MiModulo {
+        exports com.mimodulo;
+        requires com.otromodulo;
+        uses com.otromodulo;
+    }
+
+Al hacer esto, además de yo poder crear mis propios módulos de código, la JVM se modulariza... se divide en módulos.
+Y podemos arrancar o on los módulos que queramos, para tener JVM más pequeñas, más ligeras, más rápidas.
+En paralelo, había partes del código de la JVM CONSIDERADAS INSEGURAS... y se desactivaron por defecto.
+
+Spark, usa uno de esos módulos considerados de uso inseguro sun.nio.ch, que por defecto está desactivado en JAVA 9.
+
+--add-exports java.base/sun.nio.ch=ALL-UNNAMED
+
+---
+
+El objeto PalabraPuntuada no es serializable.
+                        CLUSTER
+Mi máquina              Maestro                 Trabajador1     Trabajador 50
+ JVM                    JVM                     JVM             JVM
+ Mi programa            :7077
+    reduce ---------->  Datos   
+                            datos1 + funciones ---->
+                            datos2
+                            datos50 + funciones ---------------------->
+                        Trabajos
+                            ^
+                            Funciones
+        --------------------------------
+                        Código
+
+Cómo mandamos en JAVA un dato por la RED?
+- bytes
+- json: DE TEXTO PLANO- UTF-8
+
+MICROSERVICIO?
+LENGUAJE? NPI <----------- Mi programa NPI ->----> NPI en que lenguaje
+
+Interesa más mandar datos en una red como texto o como bytes? DEPENDE !
+- Si nos ponemos todos de acuerdo en cómo interpretar esos bytes,... mejor bytes.
+- Pero si no quiero tener que poner a todos de acuerdo... mejor texto.
+
+Tipos de datos en JAVA:         JS:                     C++
+
+            BYTE
+byte          1             number  -> 8 bytes          uint8_t     8 bit  = 1 Byte
+short         2                                             0-255
+float         4                                         int8_t      8 bit  = 1 Byte
+int           4                                            [-128 , 127]
+double        8
+long          8
+
+                Que significa en JAVA cómo número     JS    C++
+BYTE  00000000              0 as byte                NADA   -128 as int8_t
+                                                            0 as uint8_t
+                            'a' as char                                
+
+En el mundo de los microservicios, donde hay distintos lenguajes... paso de todo esto... es una rallada!
+Lo que mando es texto codificado en UTF-8 A TOMAR POR CULO !
+140k
+a   -> 01100001
+b   -> 01100010
+k   -> 01101011
+ñ   -> 11000011 10110001
+á   -> 11000011 10100001
+字  -> 11100100 10111001 10011100 10011101
+
+Lo que pasa es que mandar datos como texto ...
+
+Imaginad que tengo una BBDD, con una tabla usuarios.
+En la tabla quiero guardar el DNI de una persona... Como lo guardo?
+
+CREATE TABLE usuarios (
+    id     INT PRIMARY KEY,
+    nombre VARCHAR(50),
+    dni    CHAR(9), -- Usa siempre 9 bytes... aunque sea para guardar "X        "
+    dni    VARCHAR(9) -- Usa de 1 a 9 bytes... depende el contenido
+);
+
+"2300000T"
+"23000000T"
+Cuánto ocupa eso? 8 bytes/9 bytes
+
+Cuantos valores distintos puedo representar en 1 byte?
+0000 0000 
+0000 0001
+0000 0010       2^8 = 256 valores distintos
+0000 0011
+...
+1111 1111
+
+Y en 2 bytes? 256 * 256 = 65536 valores distintos
+Y en 4 bytes? 256 * 256 * 256 * 256 = 4.294.967.296 valores distintos
+Si empezase a asignar números a cada una de esas combinaciones... empezando en el 0:
+0000 0000 0000 0000 0000 0000 0000 0000 -> 0
+0000 0000 0000 0000 0000 0000 0000 0001 -> 1
+0000 0000 0000 0000 0000 0000 0000 0010 -> 2
+...
+1111 1111 1111 1111 1111 1111 1111 1111 -> 4.294.967.295
+
+Con 4 bytes podría representar todos los números de dnis de España? Y los de italia +EU+RUSIA+++ MEDIO MUNDO
+La letra se genera desde el número... en auto... no me hace falta ni guardarla en la BBDD
+
+
+CREATE TABLE usuarios (
+    id     INT PRIMARY KEY,
+    nombre VARCHAR(50),
+    dni    INT -- 4 bytes
+);
+
+Mete 10M de datos x 4 bytes = 40M de bytes = 40MB
+                  x 9 bytes = 90M de bytes = 90MB
+El almacenamiento es lo MAS CARO QUE HAY EN PRODUCCION CON MUCHISISISISISISMA DIFERENCIA !
+Porque el DATO es lo más sagrado que hay para la empresa.
+En un entorno de producción cada dato se almacena al menos en 3 sitios distintos.
+Pero o HDD de los western blue (que son los que compro para casa)
+En una empresa compro los RED PRO... GOLD
+Y para tener 1Tbs en pro, necesito comprar 3 discos de tbs... y de los caros.
+Y ahora, cada día copia de seguridad (otro 1Tb)... y así la de los ultimos 15 días al menos.
+
+Y estamos hablando de mundo BIGDATA... donde hablamos de Tbs, Pbs, Ebs... y no de Gbs
+En este caso... nuestro programa se ejecuta en una JVM ... que tiene unos tipos de datos definidos.
+Y se manda a un cluster de Apache Spark... que se ejecuta en una JVM... que tiene lis MISMOS tipos de datos definidos.
+Y NI DE COÑA paso textos... porque los datos ocupan 10 veces más!... por la red navegando!
+
+JAVA tiene bien implementado el concepto de SERIALIZACION / DESERIALIZACION
+- Serialización: Convertir un objeto (una instancia de una clase) en un array de bytes (para guardarlo en un fichero, para mandarlo por la red)
+- Deserialización: Convertir un array de bytes en un objeto (una instancia de una clase)
