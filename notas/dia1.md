@@ -3,6 +3,7 @@
 
 Es un motor de procesamiento MAP REDUCE que corre sobre un cluster Apache Hadoop.
 Provee APIs para distintos lenguajes de programación como Java, Scala, Python y R.
+Spark está escrito en un lenguaje llamado SCALA
 
 Para qué se usa? Transformaciones de datos
 En las empresas montamos muchas ETLs.
@@ -37,8 +38,8 @@ Todo lo que hagamos en Apache Spark será mediante programación funcional.
 # Qué vamos a hacer en la formación:
 
 √ Entender el concepto de programación funcional, y cómo se usa en Java
-- Entender el concepto de programación MAP REDUCE, y cómo se usa en Java
-- Introducción: Big Data, Apache Hadoop, Apache Spark
+√ Entender el concepto de programación MAP REDUCE, y cómo se usa en Java (Stream)
+√ Introducción: Big Data, Apache Hadoop, Apache Spark
 - Llevarnos el trabajo que tengamos en JAVA (MAP REDUCE) a Apache Spark
 - Aprenderemos otras formas de trabajo disponibles en Apache Spark
 - Hablaremos de formatos de almacenamiento de datos: Parquet, Avro.
