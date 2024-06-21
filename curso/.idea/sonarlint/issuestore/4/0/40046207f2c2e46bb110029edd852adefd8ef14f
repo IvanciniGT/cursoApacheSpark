@@ -1,0 +1,11 @@
+
+q
+java:S1192@"TDefine a constant instead of duplicating this literal "Hashtags borrados: " 3 times.(À³Ú„8´ã¸²ƒ2
+p
+java:S2095("NUse try-with-resources or close this "JavaSparkContext" in a "finally" clause.(¸á‚Ğùÿÿÿÿ8ÔŒ·²ƒ2
+L	java:S106="+Replace this use of System.out by a logger.(¤³›äùÿÿÿÿ8êŒ·²ƒ2
+G	java:S106@"+Replace this use of System.out by a logger.(À³Ú„8êŒ·²ƒ2
+L	java:S106I"+Replace this use of System.out by a logger.(´¨¥úÿÿÿÿ8ëŒ·²ƒ2
+G	java:S106K"+Replace this use of System.out by a logger.(À³Ú„8ëŒ·²ƒ2
+L	java:S106L"+Replace this use of System.out by a logger.(âªİ úÿÿÿÿ8ëŒ·²ƒ2
+G	java:S106M"+Replace this use of System.out by a logger.(³ªç8Ôã¸²ƒ2
