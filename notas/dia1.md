@@ -40,7 +40,7 @@ Todo lo que hagamos en Apache Spark será mediante programación funcional.
 √ Entender el concepto de programación funcional, y cómo se usa en Java
 √ Entender el concepto de programación MAP REDUCE, y cómo se usa en Java (Stream)
 √ Introducción: Big Data, Apache Hadoop, Apache Spark
-- Llevarnos el trabajo que tengamos en JAVA (MAP REDUCE) a Apache Spark
+√ Llevarnos el trabajo que tengamos en JAVA (MAP REDUCE) a Apache Spark
 - Aprenderemos otras formas de trabajo disponibles en Apache Spark
 - Hablaremos de formatos de almacenamiento de datos: Parquet, Avro.
 
