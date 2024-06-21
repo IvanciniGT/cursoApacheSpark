@@ -35,9 +35,10 @@ public class PalabrasSimilares {
 
     private static List<String> buscarPalabrasSimilares(JavaSparkContext sc, String palabraObjetivo, List<String> palabrasValidas) {
         final String palabraObjetivoNormalizada = normalizarPalabra(palabraObjetivo);
-        return sc.parallelize(palabrasValidas)            // Para cada palabra
+        return sc.parallelize(palabrasValidas, 5)            // Para cada palabra
                .filter( palabra -> Math.abs( palabra.length() - palabraObjetivoNormalizada.length() ) <= DISTANCIA_MAXIMA_ADMISIBLE  ) // Quito las muy distintas en tamaño
-               .map(   palabraDeLongitudSimilar ->
+                .repartition(4)
+                .map(   palabraDeLongitudSimilar ->
                                 new PalabraPuntuada(palabraDeLongitudSimilar, distanciaLevenshtein(palabraDeLongitudSimilar, palabraObjetivoNormalizada)  )) // Añado las distancias
                .filter( palabraPuntuada -> palabraPuntuada.distancia <= DISTANCIA_MAXIMA_ADMISIBLE ) // Quito las muy diferentes
                .sortBy( palabraPuntuada -> palabraPuntuada.distancia, true, 1) // Ordeno por distancia

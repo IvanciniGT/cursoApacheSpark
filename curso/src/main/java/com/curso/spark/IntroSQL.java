@@ -1,6 +1,8 @@
 package com.curso.spark;
 
+import org.apache.hadoop.metrics2.MetricStringBuilder;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -17,15 +19,16 @@ public class IntroSQL {
         // Paso 1: ABRIR CONEXION CON EL CLUSTER DE SPARK
         SparkSession conexion = SparkSession.builder()
                 .appName("IntroSQL")
-                .master("local[2]")
+                //.master("local[2]")
                 .getOrCreate();
 
         // Paso 2: CARGAR LOS DATOS
         // Lo normal es estar leyendo datos de ficheros. Podría ser también de BBDD o de Kafka (menos frecuente)
-        URI uriDelFichero = PalabrasSimilares.class.getClassLoader().getResource("personas.json").toURI();
+        //URI uriDelFichero = PalabrasSimilares.class.getClassLoader().getResource("personas.json").toURI();
         //Y el fichero lo va a leer directamente Spark
-        Dataset<Row> misDatos = conexion.read().json(uriDelFichero.toString());
-        // Tenemos un objeto Dataset, que representa lo que sería equivalente a una tabla de una BBDD.
+//        Dataset<Row> misDatos = conexion.read().json(uriDelFichero.toString());
+          Dataset<Row> misDatos = conexion.read().json("/Users/ivan/Desktop/formacionApacheSpark/curso/src/main/resources/personas.json");
+//        // Tenemos un objeto Dataset, que representa lo que sería equivalente a una tabla de una BBDD.
         // Y como cualquier tabla de BBDD, tendrá un SCHEMA asociado, que indique la estructura de los datos
         misDatos.printSchema();
         // El esquema, Spark, lo infiere de los datos. En algún caso (raro) puede ser que necesite de ajustes manuales
@@ -72,7 +75,29 @@ public class IntroSQL {
         misDatosValidados.show();
         // 2. Crear una función SQL que valide los DNIS... Hacer que nuestra función en DNIUtils esté disponible en SQL
         conexion.udf().register("esValido", (String dni) -> DNIUtils.dniValido(dni) , DataTypes.BooleanType);
-        conexion.sql("SELECT * FROM personas WHERE esValido(dni)").show();
+        misDatosValidados = conexion.sql("SELECT * FROM personas WHERE esValido(dni)");
+        misDatosValidados.show();
+
+        // Leer el fichero de CP
+        //URI uriDelFicheroCP = PalabrasSimilares.class.getClassLoader().getResource("cps.csv").toURI();
+        //Y el fichero lo va a leer directamente Spark
+        Dataset<Row> misCP = conexion.read()
+                .option("header", "true")
+                .option("delimiter", ",")
+//                .csv(uriDelFicheroCP.toString());
+                .csv("/Users/ivan/Desktop/formacionApacheSpark/curso/src/main/resources/cps.csv");
+
+        misCP.show();
+        misDatosValidados.join(misCP,"cp").show();
+        misDatosValidados.join(misCP,misDatosValidados.col("cp").equalTo(misCP.col("cp"))).show();
+            // Si las columnas tuvieran distinto nombre, esta opción iría mejor!
+
+        misCP.createOrReplaceTempView("cps");
+        // * Cuando registramos una tabla para SQL, en automático se hace un Broadcast de la tabla
+        misDatosValidados.createOrReplaceTempView("personasValidadas");
+        conexion.sql("SELECT * FROM personasValidadas JOIN cps ON personasValidadas.cp = cps.cp").show();
+
+
         // Paso 5: Cerrar la conexión
         conexion.close();
     }

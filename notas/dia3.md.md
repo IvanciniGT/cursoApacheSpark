@@ -78,3 +78,75 @@ Lo segundo, validamos la letra:
              1 -> R
 
              letras control = "TRWAGMYFPDXBNJZSQVHLCKE"
+
+---
+
+# Qué hace Spark?
+
+Distribuir datos de una colección a distintos nodos... para que ellos ejecuten un trabajo. Y recopilar el resultado de esos trabajos.
+Quiero validar 1M de DNIs de personas... Y tengo 10 máquinas... qué hace spark?
+Manda a cada máquina unos 100.000 DNIs... y le pide a cada máquina que valide esos DNIs.
+
+Realmente no parte los datos en 10 particiones... y a cada máquina le manda 1 de esas particiones.
+Esto no sería óptimo?
+- PROBLEMA 1: Cuando una máquina va por el 99.999 peta!
+  Qué hace Spark? Le manda los 100.000 (que el maestro los sigue teniendo) a otro trabajador.
+  Y los 99.999 que ya había procesado? ese tiempo invertido? A la basura!
+  Me podría interesar en lugar de hacer 10 paquetes de 100.000, hacer 1000 paquetes de 1.000.
+  Y si una máquina se jode como mucho pierdo el tiempo de procesamiento de 999 DNIs.
+  Eso si... a más paquetes, más tráfico de red.. que ralentizará el proceso.
+- PROBLEMA 2: Y si una de las máquinas del cluster (que no lo uso solo yo) está ocupada haciendo otra cosa?
+  Tengo 9 máquinas que han acabado.. están echándose la siesta.. y yo esperando? Tiene sentido? NINGUNO
+    Mejor parto el trabajo en mogollón de paquetes: 1000 paquetes de 1.000 DNIs.
+    Y los trabajadores, que vayan sacando paquetes de la cola de trabajo.
+    Cuando un trabajador acabe con un paquete, que coja otro de la cola.
+    Y si una máquina está ocupada, pues que coja otro trabajador el paquete que le tocaría a esa máquina.
+    Esto lo gestiona Spark en AUTOMATICO... siempre y cuando haya definido un número de particiones adecuado.
+
+# Consideraciones a tener en cuenta:
+
+- Otro cosita....
+  En cada envío de trabajo (cada paquete), Spark manda al trabajado toda la info que necesita para hacer el trabajo.
+
+- Spark no es una BBDD... y por ende, tengo que tener mucho cuidado con ciertas operaciones a la hora de trabajar especialmente con sintaxis SQL.
+
+Imaginad que tengo un fichero con 1M de registros... y Otro fichero con otros 1M de registros.... y les quiero hacer un JOIN.
+
+Que hace Spark?
+Particionar los datos en paquetes.. qué datos? Los 2 ? NI DE COÑA ! Solo el primero. El segundo hay que mandarlo a todos los nodos. Y encima se va a mandar en cada paquete de trabajo
+
+| personas               |
+| id  | nombre | cp      |
+|-----|--------|---------|
+| 1   | Pepe   | 28001   |
+| 2   | Juan   | 28002   |  NODO 1
+| 3   | Maria  | 28003   |
+|-----|--------|---------|
+| 4   | Pedro  | 28001   |
+| 5   | Ana    | 28002   |  NODO 2
+| 6   | Luis   | 28003   |
+
+
+| cp     | poblacion |
+|--------|-----------|
+| 28001  | Madrid    |
+| 28002  | Barcelona |
+| 28003  | Valencia  |
+
+Para paliar un poco esto, podríamos hacer un BROADCAST de la tabla de poblaciones.
+Esto lo que hace es que la tabla de poblaciones se envía a todos los nodos antes de empezar a trabajar.
+Y los nodos mantienen esa tabla en memoria hasta que acabe el trabajo completo... evitando que se mande en cada paquete de trabajo.
+
+- Las BBDD hacen JOINS MUY eficientes porque tiene INDICES de los campos de unión de las tablas.
+  Qué es un índice? Una copia preordenada 
+  en Spark no existe el concepto de ÍNDICE. Los datos nos se pueden tener preordenados. Y eso hace que el JOIN Sea mucho más ineficiente.
+
+  No deberíamos intentar hacer joins de ese tipo en Spark. Siempre que podamos, haremos JOINs de tabla grande con tabla pequeña.
+  Por eso el otro día os hablaba de ETLs, ETLTs, TETL
+
+  A veces extraigo datos, los transformo con spark, los cargo en una BBDD y allí vuelvo a trabajar con ellos.
+
+--
+
+Cuando una aplicación se manda a un cluster, lo que enviamos en realidad es un JAR.
+Cuando descargo Spark de la Web de Spark

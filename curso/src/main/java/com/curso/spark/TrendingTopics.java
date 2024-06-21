@@ -2,6 +2,9 @@ package com.curso.spark;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.util.CollectionAccumulator;
 import org.apache.spark.util.LongAccumulator;
 
@@ -47,6 +50,8 @@ public class TrendingTopics {
         final List<String> hashtagsBorrados = new ArrayList<>();
         LongAccumulator contadorHashtagsBorrados = sc.sc().longAccumulator("Contador de hashtags borrados");
         CollectionAccumulator<String> hashtagsBorrados2 = sc.sc().collectionAccumulator("Hashtags borrados");
+        // Hago un broadcast de la tabla de CP
+        Broadcast<List<String>> tablaBroadcasteada = sc.broadcast(PALABRAS_PROHIBIDAS);
 
         List<String> hashtags= sc.parallelize(tweets)
                 .map(    tweet -> tweet.replace("#", " #")   ) // Añado un espacio antes de cada #
@@ -56,7 +61,7 @@ public class TrendingTopics {
                 .map(    hashtag -> hashtag.substring(1)            ) // Les quito el #
                 .map(    String::toLowerCase                                  ) // Las paso a minúsculas
                 .filter(  hashtag -> {
-                                        boolean filtrar = PALABRAS_PROHIBIDAS.stream().noneMatch( hashtag::contains );
+                                        boolean filtrar = tablaBroadcasteada.value().stream().noneMatch( hashtag::contains );
                                         if(!filtrar){
                                             System.out.println("Hashtag borrado: " + hashtag);
                                             hashtagsBorrados.add(hashtag);
